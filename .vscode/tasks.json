@@ -11,6 +11,7 @@
                  "${fileDirname}\\ranlib.c",
                  "${fileDirname}\\rnglib.c",
                 "-fopenmp",
+                "-IC",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],

@@ -1,10 +1,11 @@
 // #include <CL/cl.h>
-#include <CL/cl.h>
+#include "C:\\OpenCL_SDK\\OpenCL-SDK\\external\\OpenCL-Headers\\CL\cl.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 
 // Define the platform and device index
+
 #define PLATFORM_INDEX 0
 #define DEVICE_INDEX 0
 
@@ -70,7 +71,7 @@ int main() {
     // ... (set kernel arguments using clSetKernelArg)
 
     // Set LOCAL_WORKGROUP_SIZE to the maximum value
-    uint LOCAL_WORKGROUP_SIZE = (uint)maxLocalWorkgroupSize;
+    uint LOCAL_WORKGROUP_SIZE = (uint) maxLocalWorkgroupSize;
 
     // Print device information
     char deviceName[128];

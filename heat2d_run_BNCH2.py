@@ -85,8 +85,8 @@ def bordes(u):
 plate_length = 1.
 plate_width = 1.
 
-ni = int(2**10+1)  # 50
-nj = int(2**10+1)  # 50
+ni = int(2**8+1)  # 50
+nj = int(2**8+1)  # 50
 width, height = [ni, nj]
 delta_x = np.double(plate_length/(ni))
 delta_y = delta_x
