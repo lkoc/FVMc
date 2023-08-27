@@ -19,8 +19,8 @@ import pyopencl as cl
 
 from numba import jit, prange, njit
 import numpy as np
-from scipy.interpolate import RegularGridInterpolator
-import scipy.ndimage as ndimage
+#from scipy.interpolate import RegularGridInterpolator
+#import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from tqdm import tqdm
