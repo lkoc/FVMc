@@ -190,15 +190,15 @@ ctx = cl.create_some_context()
 queue = cl.CommandQueue(ctx)
 mf = cl.mem_flags
 cl_tin = cl.Buffer(ctx, mf.READ_WRITE
-                   | mf.COPY_HOST_PTR, hostbuf=tin)
+                   mf.COPY_HOST_PTR, hostbuf=tin)
 cl_tout = cl.Buffer(ctx, mf.READ_WRITE
                     | mf.COPY_HOST_PTR, hostbuf=tout)
 cl_K = cl.Buffer(ctx, mf.READ_ONLY
-                 | mf.COPY_HOST_PTR, hostbuf=init_conductivity)
+                 mf.COPY_HOST_PTR, hostbuf=init_conductivity)
 cl_C = cl.Buffer(ctx, mf.READ_ONLY
-                 | mf.COPY_HOST_PTR, hostbuf=init_f)
+                 mf.COPY_HOST_PTR, hostbuf=init_f)
 cl_Br = cl.Buffer(ctx, mf.READ_ONLY
-                  | mf.COPY_HOST_PTR, hostbuf=M_Br)
+                  mf.COPY_HOST_PTR, hostbuf=M_Br)
 
 
 prg = cl.Program(ctx, open('heat2d_BNCH1.cl').read()).build()

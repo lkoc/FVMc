@@ -6,9 +6,9 @@
 #define MAX_VARIANCE_TO_MEAN_RATIO 0.01 // maximum variance to mean ratio to stop the simulation
 #define DEEP_OF_DOMAIN 10 // deep of domain in meters
 #define WIDTH_OF_DOMAIN 10 // width of domain in meters
-#define NUMBER_OF_POINTS_IN_X 5000
-#define NUMBER_OF_POINTS_IN_Y 5000
-#define MAX_NUMBER_OF_LOOPS 64// maximum number of loops
+#define NUMBER_OF_POINTS_IN_X 2500
+#define NUMBER_OF_POINTS_IN_Y 2500
+#define MAX_NUMBER_OF_LOOPS 8// maximum number of loops
 #define DEEP_CABLE 1.04 // deep of cable in meters
 #define SEP_CABLES 0.4  // separation between cables in meters between three phase circuits
 #define TYPE_CABLE_ARRANGEMENT 2 // 1 for horizontal arrangement, 2 for trifoil arrangement

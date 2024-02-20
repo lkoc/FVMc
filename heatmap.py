@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 
 # read data from file
-data = np.loadtxt('results_graph_ex3.csv', delimiter=',')
+data = np.loadtxt('C:\\tmp\\FVMc\\results_graph_ex3.csv', delimiter=',')
 # Order the data following the first column without destroy the vector so that it can be plotted as a heatmap 
 data = data[data[:,2].argsort()] # First sort doesn't need to be stable.
 data= data[data[:,1].argsort(kind='mergesort')]

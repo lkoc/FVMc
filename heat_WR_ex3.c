@@ -6,8 +6,8 @@
 #define MAX_VARIANCE_TO_MEAN_RATIO 0.01 // maximum variance to mean ratio to stop the simulation
 #define DEEP_OF_DOMAIN 10.0 // deep of domain in meters
 #define WIDTH_OF_DOMAIN 10.0 // width of domain in meters
-#define NUMBER_OF_POINTS_IN_X 7500
-#define NUMBER_OF_POINTS_IN_Y 7500
+#define NUMBER_OF_POINTS_IN_X 15000
+#define NUMBER_OF_POINTS_IN_Y 15000
 #define MAX_NUMBER_OF_LOOPS 100// maximum number of loops
 #define DEEP_CABLE 1.04 // deep of cable in meters
 #define SEP_CABLES 0.4  // separation between cables in meters between three phase circuits
@@ -98,14 +98,14 @@ double x_cable23; // x coordinate of cable 3, right and down cable
 double y_cable23; // y coordinate of cable 3
 double F_c2; // heat source in cable W/m3
 
-// //Circuit 3 - three phase arrangement in trifoil - Right circuit
-// double x_cable31; // x coordinate of cable 1 , central and upper cable
-// double y_cable31; // y coordinate of cable 1
-// double x_cable32; // x coordinate of cable 2, left and down cable
-// double y_cable32; // y coordinate of cable 2
-// double x_cable33; // x coordinate of cable 3, right and down cable
-// double y_cable33; // y coordinate of cable 3
-// double F_c3; // heat source in cable W/m3
+//Circuit 3 - three phase arrangement in trifoil - Right circuit
+double x_cable31; // x coordinate of cable 1 , central and upper cable
+double y_cable31; // y coordinate of cable 1
+double x_cable32; // x coordinate of cable 2, left and down cable
+double y_cable32; // y coordinate of cable 2
+double x_cable33; // x coordinate of cable 3, right and down cable
+double y_cable33; // y coordinate of cable 3
+double F_c3; // heat source in cable W/m3
 
 
 //boundaries temperatures and gradients
@@ -272,18 +272,18 @@ double SPATIAL_PARAM(int i, int j, double SP_soil1, double SP_soil2, double SP_x
     }
     
     // Circuit 3, cable 31 , cable 32 and cable 33 - Right circuit
-    // if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
-    //     circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
-    //     circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
-    //     SP_ = SP_cond;
-    //     return SP_; // return SP_cable if (x,y) is inside cable 31, 32 or 33
-    // }
-    // if (circle(x, y, x_cable31, y_cable31, cable_diam/2) || 
-    //     circle(x, y, x_cable32, y_cable32, cable_diam/2) || 
-    //     circle(x, y, x_cable33, y_cable33, cable_diam/2)) {
-    //     SP_ = SP_xlpe;
-    //     return SP_; // return SP_xlpe if (x,y) is inside cable 31, 32 or 33
-    // }
+    if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
+        circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
+        circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
+        SP_ = SP_cond;
+        return SP_; // return SP_cable if (x,y) is inside cable 31, 32 or 33
+     }
+    if (circle(x, y, x_cable31, y_cable31, cable_diam/2) || 
+        circle(x, y, x_cable32, y_cable32, cable_diam/2) || 
+        circle(x, y, x_cable33, y_cable33, cable_diam/2)) {
+        SP_ = SP_xlpe;
+        return SP_; // return SP_xlpe if (x,y) is inside cable 31, 32 or 33
+     }
  
    } // end of else
     return SP_; // return SP_ value
@@ -352,12 +352,12 @@ double F(int i, int j, int steps) {
          return F_c2; // return F_cable if (x,y) is inside cable 21, 22 or 23
      }
     
-    // if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
-    //     circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
-    //     circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
-    //     //F_ = F_c3*steps*steps*hmin*hmin*a_P_inv();
-    //     //return F_; // return F_cable if (x,y) is inside cable 31, 32 or 33
-    //       return F_c3 
+    if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
+        circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
+        circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
+        //F_ = F_c3*steps*steps*hmin*hmin*a_P_inv();
+        //return F_; // return F_cable if (x,y) is inside cable 31, 32 or 33
+          return F_c3 ; // return F_cable if (x,y) is inside cable 31, 32 or 33
     //}
     return F_;
 }
@@ -626,25 +626,24 @@ int main(void)
     F_c2 = 1.0* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4)*hmin*hmin/a_P ; // heat source in cable W/m3 --> 1.05 is for insulation losses
     //F_c2 = 1.05* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4) ; // heat source in cable W/m3 --> 1.05 is for insulation losses 
     //Circuit 3 - three phase arrangement in trifoil - Right circuit
-    // x_cable31 = x_cable11 + separation_circuits; // x coordinate of cable 1 , central and upper cable
-    // y_cable31 = y_cable11; // y coordinate of cable 1
-    // x_cable32 = x_cable31  - cable_diam*(0.5 + separat_lateral_cables); // x coordinate of cable 2, left and down cable
-    // y_cable32 = deep_cable - cable_diam/2; // y coordinate of cable 2
-    // x_cable33 = x_cable31  + cable_diam*(0.5 + separat_lateral_cables); // x coordinate of cable 3, right and down cable
-    // y_cable33 = deep_cable - cable_diam/2; // y coordinate of cable 3
+    x_cable31 = x_cable11 + separation_circuits; // x coordinate of cable 1 , central and upper cable
+    y_cable31 = y_cable11; // y coordinate of cable 1
+    x_cable32 = x_cable31  - cable_diam*(0.5 + separat_lateral_cables); // x coordinate of cable 2, left and down cable
+    y_cable32 = deep_cable - cable_diam/2; // y coordinate of cable 2
+    x_cable33 = x_cable31  + cable_diam*(0.5 + separat_lateral_cables); // x coordinate of cable 3, right and down cable
+    y_cable33 = deep_cable - cable_diam/2; // y coordinate of cable 3
     
-    // // current in circuit 3
-    // double Ic3 = 0.0; // current in cable
-    // int icable3= (int) (x_cable31/hmin); // cable number
-    // int jcable3= (int) (y_cable31/hmin); // cable number
-    // F_c3 = 1.05*Ic3*Ic3*res_cond/(cable_area)*hmin*hmin/a_P ; // heat source in cable W/m3
-
+    // current in circuit 3
+    double Ic3 = 0.0; // current in cable
+    int icable3= (int) (x_cable31/hmin); // cable number
+    int jcable3= (int) (y_cable31/hmin); // cable number
+    F_c3 = 1.05*Ic3*Ic3*res_cond/(cable_area)*hmin*hmin/a_P ; // heat source in cable W/m3
 
     // Point to calculate the temperature
     ///////////////////////////////////////
     ///////////////////////////////////////
-    double x_point = x_cable21;          //   L/2; // x coordinate of the point
-    double y_point = y_cable21 ; // - cable_diam/2-0.002; // y coordinate of the point
+    double x_point = x_cable21;          //   L/2; // x coordinate of the point in meters
+    double y_point = y_cable21 ; // - cable_diam/2-0.002; // y coordinate of the point in meters
     ///////////////////////////////////////
     ///////////////////////////////////////
     // Initial point of walkers
