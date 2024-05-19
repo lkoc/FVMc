@@ -17,7 +17,7 @@ h = np.linspace(0.001, 0.32, 100)
 #delta_t_max = {material: (h**2 * props["rho"] * props["Ce"]) / (4 * props["k"]) 
 #               for material, props in materials.items()}
 
-delta_t_max = {material: (2*h* props["rho"] * props["Ce"]) / (4 * props["k"]) 
+delta_t_max = {material: (2*h**2 * props["rho"] * props["Ce"]) / (4 * props["k"]) 
                for material, props in materials.items()}
 
 
@@ -42,7 +42,7 @@ To calculate the maximum time step (\( \Delta t_{\text{max}} \)) for a
  
  The formula you've given is:
 
-\[ \Delta t_{\text{max}} = \frac{h^2 \cdot \rho \cdot C_e}{4 \cdot k} \]
+\[ \Delta t_{\text{max}} = \frac{2 \times h^2 \cdot \rho \cdot C_e}{4 \cdot k} \]
 
 We'll calculate \( \Delta t_{\text{max}} \) for a range of
  space steps (\( h \)) from 0.001 m to 0.032 m for each material and plot the

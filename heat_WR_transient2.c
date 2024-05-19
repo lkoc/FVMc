@@ -3,13 +3,13 @@
 // ./heat_WR_transient2.exe
 // Main parameters
 #define N_WALKERS 0 // number of parallel walkers 0 for maximum hardware number of threads
-#define MAX_VARIANCE_TO_MEAN_RATIO -1.0 // maximum variance to mean ratio to stop the simulation (-1 for no control by variance to ratio)
+#define MAX_VARIANCE_TO_MEAN_RATIO -1// -1.0 //0.025 //-1.0 // maximum variance to mean ratio to stop the simulation (-1 for no control by variance-to-mean ratio)
 #define DEEP_OF_DOMAIN 10.0 // deep of domain in meters
 #define WIDTH_OF_DOMAIN 10.0 // width of domain in meters
-#define NUMBER_OF_POINTS_IN_X 320000 // 7500
-#define NUMBER_OF_POINTS_IN_Y 320000 //7500
-#define MAX_NUMBER_OF_LOOPS 50 // maximum number of loops
-#define DEEP_CABLE 1.04 // deep of cable in meters
+#define NUMBER_OF_POINTS_IN_X 12000 // 7500
+#define NUMBER_OF_POINTS_IN_Y 12000 //7500
+#define MAX_NUMBER_OF_LOOPS 100 // maximum number of loops
+#define DEEP_CABLE 0.803 // deep of cable in meters
 #define SEP_CABLES 0.4  // separation between cables in meters between three phase circuits
 #define TYPE_CABLE_ARRANGEMENT 2 // 1 for horizontal arrangement, 2 for trifoil arrangement
 #define BACKFILL_HEIGHT_LAYER 0.4 //1.04 // 1.04 // height of backfill soil layer in m
@@ -18,9 +18,10 @@
 #define VERBOSE3 0 // 1 to print detailed results of probabilities in the screen
 #define VERBOSE4 0 // 1 to print detailed results of heat sources in the screen
 #define PRINT_ADVANCE 1 // 1 to print advance of the simulation in the screen
-#define RANDOM_LIB 1 // 1 to use native random library, 0 to use ranlib library
-#define TMAX 36000.0 // 360000.0 // maximum temperature of the domain 
-#define Factor_dt 1.0 // factor to calculate the time step
+#define RANDOM_LIB 0 // 1 to use native random library, 0 to use ranlib library
+#define TMAX 3600000.0 // maximum temperature of the domain 
+#define Factor_dt 1.0// factor to calculate the time step
+#define Icarga 690.0 // corriente de carga
 
 // libraries
 #include <stdint.h>
@@ -48,9 +49,10 @@ double d_t_0; // initial time step
 double d_t; // variable time step
 
 // Aluminum 630 mm2 data for calculations
+// https://www.powerandcables.com/product/product-category/33kv-cable-xlpe-single-core-630sqmm-bs7870-nexans/
 double cable_area= 0.000630;// cross area of cable 630 mm2 in squered meters
-double cable_diam = 0.0615; // diameter of cable 630 mm2 - fuente: http://es.lemeicable.com/product/108.html
-double cond_diam =  0.0301; // diameter of conductor 630 mm2 - fuente: http://es.lemeicable.com/product/108.html 
+double cable_diam = 0.0576; // diameter of cable 630 mm2 - fuente: http://es.lemeicable.com/product/108.html
+double cond_diam =  0.032; // diameter of conductor 630 mm2 - fuente: http://es.lemeicable.com/product/108.html 
 double res_cond =   0.000064; // ohm/m  - electric resistivity of cable 630 mm2 0.0469 ohm/km at 20°C DC - fuente: http://es.lemeicable.com/product/108.html
 double rho_cond = 2712; //  cobre->8960.0; // Aluminium density  in kg/m3 - fuente: http://www.engineeringtoolbox.com/metal-alloys-densities-d_50.html
 double Ce_cond = 897.0; // specific heat of copper cable in J/(kg K) - fuente: http://www.engineeringtoolbox.com/metal-alloys-densities-d_50.html
@@ -65,7 +67,7 @@ double F_xlpe = 0.0; // heat source in cable W/m3
 // Native Soil thermal data for calculations
 double rho_soil1 = 2000.0; // density of soil_1 in kg/m3 - fuente: https://www.cableizer.com/documentation/zeta_soil/
 double Ce_soil1 = 800.0; // specific heat of soil 1 in J/(kg K) - fuente: https://www.cableizer.com/documentation/c_p_soil/
-double k_soil1 = (1.0/1.2) ;// 0.2; // thermal conductivity of soil 1 in W/(m.K) (resistivity = 5)- fuente: https://link.springer.com/article/10.1007/s10765-022-03119-5
+double k_soil1 = (1.0/1.2) ; // 0.2; // thermal conductivity of soil 1 in W/(m.K) (resistivity = 5)- fuente: https://link.springer.com/article/10.1007/s10765-022-03119-5
 double F_soil1 = 0.0; // heat source in soil 1 W/m3
 
 // Backfill Soil thermal data for calculations
@@ -113,12 +115,12 @@ double F_c2; // heat source in cable W/m3
 
 //boundaries temperatures and gradients
 // Dirichlet boundary conditions
-double Ttop    = 20.0; // temperature at the top of the domain
-double Tbottom = 20.0; // temperature at the bottom of the domain
-double Tleft   = 20.0; // temperature at the left of the domain
-double Tright  = 20.0; // temperature at the right of the domain
-double Tini    = 20.0; // initial temperature of the domain
-double Tcable  = 90.0; // max temperature of the cable for 
+double Ttop    = 25.0; // temperature at the top of the domain
+double Tbottom = 15.0; // temperature at the bottom of the domain
+double Tleft   = 15.0; // temperature at the left of the domain
+double Tright  = 15.0; // temperature at the right of the domain
+double Tini    = 15.0; // initial temperature of the domain
+double Tcable  = 90.0; // max temperature of the cable for cable
 
 // Neumann boundary conditions
 double qtop    = 0.0; // heat flux at the top of the domain
@@ -129,8 +131,8 @@ double qright  = 0.0; // heat flux at the right of the domain
 // kind of boundaries
 int b_top    = 1; // 1: Dirichlet, 2: Neumann
 int b_bottom = 1; // 1: Dirichlet, 2: Neumann
-int b_left   = 1; // 1: Dirichlet, 2: Neumann
-int b_right  = 1; // 1: Dirichlet, 2: Neumann
+int b_left   = 2; // 1: Dirichlet, 2: Neumann
+int b_right  = 2; // 1: Dirichlet, 2: Neumann
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function to check if coordinates (x,y) are inside a circle of radio r     //
@@ -187,7 +189,7 @@ double SPATIAL_PARAM(int i, int j, double SP_soil1, double SP_soil2, double SP_x
     if (circle(x, y, x_cable21, y_cable21, cable_diam/2) || 
         circle(x, y, x_cable22, y_cable22, cable_diam/2) || 
         circle(x, y, x_cable23, y_cable23, cable_diam/2)) {
-        SP_ = SP_xlpe;
+       SP_ = SP_xlpe;
         return SP_; // return SP_xlpe if (x,y) is inside cable 21, 22 or 23
     }
     
@@ -246,20 +248,21 @@ double F(int i, int j, double d_t) {
     if (circle(x, y, x_cable11, y_cable11, cond_diam/2) || 
         circle(x, y, x_cable12, y_cable12, cond_diam/2) || 
         circle(x, y, x_cable13, y_cable13, cond_diam/2)) {
-        return F_c1*d_t/(Ce(i,j) * rho(i,j)); // return F_cable if (x,y) is inside cable 11, 12 or 13
+        return F_c1 * d_t/(Ce(i,j) * rho(i,j)); // return F_cable if (x,y) is inside cable 11, 12 or 13
     }
 
     if (circle(x, y, x_cable21, y_cable21, cond_diam/2) || 
-         circle(x, y, x_cable22, y_cable22, cond_diam/2) || 
-         circle(x, y, x_cable23, y_cable23, cond_diam/2)) {
-         return F_c2*d_t/(Ce(i,j) * rho(i,j)); // return F_cable if (x,y) is inside cable 21, 22 or 23
-     }
+        circle(x, y, x_cable22, y_cable22, cond_diam/2) || 
+        circle(x, y, x_cable23, y_cable23, cond_diam/2)) {
+        return F_c2 * d_t/(Ce(i,j) * rho(i,j)); // return F_cable if (x,y) is inside cable 21, 22 or 23
+    }
     
     // if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
     //     circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
     //     circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
     //     return F_c3 *d_t/(Ce(i,j) * rho(i,j))
     //}
+    
     return F_;
 }
 
@@ -278,7 +281,7 @@ double U(int i, int j) {
 // Function to calculate the probabilities of the walker to move to the      //
 // next position                                                            //
 /////////////////////////////////////////////////////////////////////////////// 
-int calculate_probabilities( int i, int j) {
+int calculate_probabilities( int i, int j,  double d_t) {
     // Define the probabilities of the walker to move to the next position
     // based on the thermal conductivity of the material at the next position
     double Ce_E, Ce_W, Ce_S, Ce_N , Ce_P;    // Coefficients of the temperature terms of the heat equation at interior node
@@ -287,27 +290,26 @@ int calculate_probabilities( int i, int j) {
     double F_e, F_w, F_n, F_s, F_p; // linearly interpolated values of thermal conductivity
     double F_c ; // linearly interpolated values of thermal conductivity of central point
     double rho_E, rho_W, rho_N, rho_S, rho_P; // linearly interpolated values of thermal conductivity
-    double omega 
-
+    int steps =1;
+    double omega = d_t / (2.0*hmin*hmin*steps*steps); //1.0*d_t / (hmin*hmin*steps*steps); // time step divided by h^2
+    
     int verbose = VERBOSE3; // 1 = print probabilities, 0 = don't print probabilities
+    
 
     // Values of thermal conductivity 
     K_P = K(i  ,j);    // thermal conductivity at the point P --> (i,j)
-    K_W = K(i-1,j);    // thermal conductivity at the point W --> (i-1,j)  
-    K_E = K(i+1,j);    // thermal conductivity at the point E --> (i+1,j)
-    K_S = K(i  ,j+1 ); // thermal conductivity at the point S --> (i,j+1)
-    K_N = K(i  ,j-1);  // thermal conductivity at the point N --> (i,j-1)
+    K_W = K(i-steps,j);    // thermal conductivity at the point W --> (i-1,j)  
+    K_E = K(i+steps,j);    // thermal conductivity at the point E --> (i+1,j)
+    K_S = K(i  ,j+steps ); // thermal conductivity at the point S --> (i,j+1)
+    K_N = K(i  ,j-steps);  // thermal conductivity at the point N --> (i,j-1)
 
     // Parametros en el punto P
     rho_P = rho(i  , j) ;    // densidad en el punto P --> (i,j)
     Ce_P = Ce(i  ,j);    // calor especifico en el punto P --> (i,j)
     
-    omega = 
     // verificar silos valores de K son iguales 
     if (K_P == K_E && K_P == K_W && K_P == K_N && K_P == K_S) {
-        d_t = Factor_dt * 2.0 * Ce_P * rho_P * hmin*hmin /(4.0 * K_P)
-
-        F_c = K_P * d_t / (rho_P * Ce_P * hmin*hmin); //   
+        F_c = K_P / (rho_P * Ce_P) * omega;
         p_P = (1.0 - 4.0*F_c);
         p_E = (1.0 - (3.0*F_c)); // probability to move to the left
         p_W = (1.0 - (2.0*F_c)); // probability to move to the right
@@ -316,30 +318,37 @@ int calculate_probabilities( int i, int j) {
     } // else
     else {
         // Valores de rho 
-        rho_W = rho(i-1, j); // densidad en el punto W --> (i-1,j)
-        rho_E = rho(i+1, j); // densidad en el punto E --> (i+1,j)
-        rho_S = rho(i  , j+1); // densidad en el punto S --> (i,j+1)
-        rho_N = rho(i  , j-1); // densidad en el punto N --> (i,j-1)
+        rho_W = rho(i-steps, j); // densidad en el punto W --> (i-1,j)
+        rho_E = rho(i+steps, j); // densidad en el punto E --> (i+1,j)
+        rho_S = rho(i  , j+steps); // densidad en el punto S --> (i,j+1)
+        rho_N = rho(i  , j-steps); // densidad en el punto N --> (i,j-1)
 
         // Valores de Ce 
-        Ce_W = Ce(i-1, j); // calor especifico en el punto W --> (i-1,j)
-        Ce_E = Ce(i+1, j); // calor especifico en el punto E --> (i+1,j)
-        Ce_S = Ce(i  , j+1); // calor especifico en el punto S --> (i,j+1)
-        Ce_N = Ce(i  , j-1); // calor especifico en el punto N --> (i,j-1)
+        Ce_W = Ce(i-steps, j); // calor especifico en el punto W --> (i-1,j)
+        Ce_E = Ce(i+steps, j); // calor especifico en el punto E --> (i+1,j)
+        Ce_S = Ce(i  , j+steps); // calor especifico en el punto S --> (i,j+1)
+        Ce_N = Ce(i  , j-steps); // calor especifico en el punto N --> (i,j-1)
+
+        // Valores de alpha
+        float alpha_E = 2*(K_E + K_P) / ((rho_E + rho_P)* (Ce_E + Ce_P));
+        float alpha_W = 2*(K_W + K_P) / ((rho_W + rho_P)* (Ce_W + Ce_P));
+        float alpha_N = 2*(K_N + K_P) / ((rho_N + rho_P)* (Ce_N + Ce_P));
+        float alpha_S = 2*(K_S + K_P) / ((rho_S + rho_P)* (Ce_S + Ce_P));
 
         // Valores de F (coeficientes) interpolados linealmente
-        F_w = 2* (K_W + K_P) /((rho_W + rho_P)*(Ce_W + Ce_P)) * omega ; // valor de F entre W y P
-        F_e = 2* (K_E + K_P) /((rho_E + rho_P)*(Ce_E + Ce_P)) * omega ; // valor de F entre E y P
-        F_n = 2* (K_N + K_P) /((rho_N + rho_P)*(Ce_N + Ce_P)) * omega ; // valor de F entre N y P
-        F_s = 2* (K_S + K_P) /((rho_S + rho_P)*(Ce_S + Ce_P)) * omega ; // valor de F entre S y P
-        F_p = (K_E + K_W + K_N + K_S) /((rho_P* Ce_P)) * omega ;        // valor de F en P
+        
+        F_e = alpha_E * omega ; // valor de F entre E y P
+        F_w = alpha_W * omega ; // valor de F entre W y P
+        F_n = alpha_N * omega ; // valor de F entre N y P
+        F_s = alpha_S * omega ; // valor de F entre S y P
+        F_p = (alpha_W + alpha_E + alpha_N + alpha_S) * omega ; // valor de F en P
 
         // Cumulative probabilities to next position transition
         p_P = (1 - F_p);
         p_E = (1 - (F_p - F_e)); // probability to move to the left
         p_W = (1 - (F_p - F_e - F_w)); // probability to move to the right
         p_N = (1 - (F_p - F_e - F_w - F_n)) ;// probability to move to the top
-        p_S = 1.00; // probability to move to the bottom
+        p_S = 1.00; // probability to move to the bottom        
     }
     
     // print p_E, p_W, p_N and p_S conditioned to verbose in a single row
@@ -384,19 +393,22 @@ double single_walk(int start_i, int start_j) {
     double temp_walker = 0 ; // scored walker temperature
     int no_border = 1; // 0 = border touched, 1 = no border touched
     int verbose = VERBOSE2 ; // 1 = print walker position, 0 = don't print walker position
-    int walk_steps=0; // counter for the walk steps number 
+    int walk_steps=0; // counter for the walk steps number
+
     double time = 0.0; // time point for the walker
     double tmax = TMAX; // maximum time for the walker
+    
     d_t = d_t_0; // time step size for cooper conductivity
     // loop over the walk length 
     while (no_border == 1 && time <= tmax) {
         temp_walker += F(i,j,  d_t)  ; // *steps;
-
+        time += d_t; // update the time
+        
         walk_steps++; // update the walk steps number
         //Add heat source to the temperature
         
         //Calculate the probabilities and move the walker 
-        direction = calculate_probabilities(i, j); // retorna direccion random y actuliza paso de tiempo
+        direction = calculate_probabilities(i, j, d_t); // retorna direccion random y actuliza paso de tiempo
         switch (direction) {
             case 0:
                 //no_border = 0; // No border
@@ -455,7 +467,7 @@ double single_walk(int start_i, int start_j) {
                 }
                 break; // end of the switch
         }
-    time += d_t; // update the time
+    
     // print if no_border == 0 conditioned to verbose
 /*
     if (VERBOSE4) {
@@ -514,7 +526,9 @@ int main(void)
     ///////////////////////////////////////////////
     //           time step size d_t              //
     //////////////////////////////////////////////
-    d_t_0 = Factor_dt * (2*hmin*hmin ) * rho_cond * Ce_cond / (4.0*k_cond); // time step size for cooper conductors
+    double alpha_cond = k_cond / (rho_cond * Ce_cond);
+    d_t_0 = Factor_dt * (2* hmin*hmin )  / (4 * alpha_cond); // time step size for cooper conductors
+    int t_max = TMAX ;
 
     //////////////////////////////////////////////
     // Cable geometry and arrangement  parameters//
@@ -548,13 +562,13 @@ int main(void)
     y_cable13 = deep_cable - cable_diam; // y coordinate of cable 3
         
     // current in circuit 1
-    double Ic1 = 328.6; // current in cable
+    double Ic1 = 0.0; //Icarga; //328.6; //328.6; // current in cable
     int icable1= (int) (x_cable11/hmin); // cable number
     int jcable1= (int) (y_cable11/hmin); // cable number
     int i = (int) (x_cable11 / hmin);
     int j = (int) (y_cable11 / hmin);
     
-    F_c1 = 0.0 ;// (1.0 * Ic1 * Ic1 * res_cond/((3.141592 * cond_diam*cond_diam/4)*(2*hmin)) ; // heat source in cable W/m3 --> 1.05 is for insulation losses
+    F_c1 = (1.0 * Ic1 * Ic1 * res_cond/(3.1416*cond_diam*cond_diam/4)) ; // heat source in cable W/m3 --> 1.05 is for insulation losses
     //Circuit 2 - three phase arrangement in trifoil - Left circuit
     x_cable21 = x_cable11 - separation_circuits; // x coordinate of cable 1 , central and upper cable
     y_cable21 = y_cable11; // y coordinate of cable 1
@@ -564,11 +578,11 @@ int main(void)
     y_cable23 = deep_cable - cable_diam; // y coordinate of cable 3
     
     // current in circuit 2
-    double Ic2 = 690.0; //690.0; // 328.6; // current in cable
+    double Ic2 =  Icarga; //328.6; //328.6; //690.0; // 328.6; // current in cable
     int icable2= (int) (x_cable21/hmin); // cable number
     int jcable2= (int) (y_cable21/hmin); // cable number
-    F_c2 = 1.05 * Ic2 * Ic2 * res_cond/((3.141592 * cond_diam*cond_diam/4)*(2*hmin)); // heat source in cable W/m3 --> 1.05 is for insulation losses
-
+    F_c2 = (1.0 * Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4)) ; // heat source in cable W/m3 --> 1.05 is for insulation losses
+    
     //Circuit 3 - three phase arrangement in trifoil - Right circuit
     // x_cable31 = x_cable11 + separation_circuits; // x coordinate of cable 1 , central and upper cable
     // y_cable31 = y_cable11; // y coordinate of cable 1
@@ -581,13 +595,13 @@ int main(void)
     // double Ic3 = 0.0; // current in cable
     // int icable3= (int) (x_cable31/hmin); // cable number
     // int jcable3= (int) (y_cable31/hmin); // cable number
-    // F_c3 = 1.05 * Ic3 * Ic3 * res_cond/((3.141592 * cond_diam*cond_diam/4)*(2*hmin)); // heat source in cable W/m3 --> 1.05 is for insulation losses
+    // F_c3 = 1.05 * Ic3 * Ic3 * res_cond/((3.141592 * cond_diam*cond_diam/4)); // heat source in cable W/m3 --> 1.05 is for insulation losses
 
     // Point to calculate the temperature
     ///////////////////////////////////////
     ///////////////////////////////////////
-    double x_point = x_cable21;          //   L/2; // x coordinate of the point
-    double y_point = y_cable21 ; // - cable_diam/2-0.002; // y coordinate of the point
+    double x_point = x_cable21- cond_diam/4;          //   L/2; // x coordinate of the point
+    double y_point = y_cable21 + cond_diam/4 ; // - cable_diam/2-0.002; // y coordinate of the point
     ///////////////////////////////////////
     ///////////////////////////////////////
     // Initial point of walkers
@@ -697,8 +711,8 @@ int main(void)
 
     // write in a single text row Average Temperature, standard deviation and  n_walkers*n_loops to file to a file (new or add to existent) 
     FILE *fp; // file pointer
-    fp = fopen("results_ex3_transient.txt", "a"); // open file to append
-    fprintf(fp, "%.8f   %.8f   %d    %.8f %.8f  %d \n", average_temperature, sqrt(variance), n_walkers*n_loops, hmin, d_t_0 ,nx) ;
+    fp = fopen("results_transient2_NEUMANN.csv", "a"); // open file to append
+    fprintf(fp, "%d, %d, %d, %.8f, %.8f, %d, %.8f, %.8f, %d, \n", t_max, start_i, start_j, average_temperature, sqrt(variance), n_walkers*n_loops, hmin, d_t_0 ,nx) ;
     fclose(fp);
    return 0;
 }

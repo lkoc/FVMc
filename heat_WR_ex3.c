@@ -3,12 +3,12 @@
 // ./heat_WR_ex3.exe
 // Main parameters
 #define N_WALKERS 0 // number of parallel walkers 0 for maximum hardware number of threads
-#define MAX_VARIANCE_TO_MEAN_RATIO 0.01 // maximum variance to mean ratio to stop the simulation
+#define MAX_VARIANCE_TO_MEAN_RATIO 0.001 // maximum variance to mean ratio to stop the simulation
 #define DEEP_OF_DOMAIN 10.0 // deep of domain in meters
 #define WIDTH_OF_DOMAIN 10.0 // width of domain in meters
-#define NUMBER_OF_POINTS_IN_X 25000 // 7500
-#define NUMBER_OF_POINTS_IN_Y 25000 //
-#define MAX_NUMBER_OF_LOOPS 32 // maximum number of loops
+#define NUMBER_OF_POINTS_IN_X 5000 // 7500
+#define NUMBER_OF_POINTS_IN_Y 5000 //
+#define MAX_NUMBER_OF_LOOPS 1000 // maximum number of loops
 #define DEEP_CABLE 1.04 // deep of cable in meters
 #define SEP_CABLES 0.4  // separation between cables in meters between three phase circuits
 #define TYPE_CABLE_ARRANGEMENT 2 // 1 for horizontal arrangement, 2 for trifoil arrangement
@@ -18,7 +18,7 @@
 #define VERBOSE3 0 // 1 to print detailed results of probabilities in the screen
 #define VERBOSE4 0 // 1 to print detailed results of heat sources in the screen
 #define PRINT_ADVANCE 1 // 1 to print advance of the simulation in the screen
-#define RANDOM_LIB 1 // 1 to use native random library, 0 to use ranlib library
+#define RANDOM_LIB 0 // 1 to use native random library, 0 to use ranlib library
 
 // libraries
 #include <stdint.h>
@@ -45,8 +45,8 @@ int n_steps; // number of steps in each walk
 
 // Aluminum 630 mm2 data for calculations
 double cable_area= 0.000630;// cross area of cable 630 mm2 in squered meters
-double cable_diam = 0.0615; // diameter of cable 630 mm2 - fuente: http://es.lemeicable.com/product/108.html
-double cond_diam =  0.0301; // diameter of conductor 630 mm2 - fuente: http://es.lemeicable.com/product/108.html 
+double cable_diam = 0.0576; // diameter of cable 630 mm2 - fuente: http://es.lemeicable.com/product/108.html
+double cond_diam =  0.032; // diameter of conductor 630 mm2 - fuente: http://es.lemeicable.com/product/108.html 
 double res_cond =   0.000064; // ohm/m  - electric resistivity of cable 630 mm2 0.0469 ohm/km at 20°C DC - fuente: http://es.lemeicable.com/product/108.html
 double rho_cond = 2712; //  cobre->8960.0; // Aluminium density  in kg/m3 - fuente: http://www.engineeringtoolbox.com/metal-alloys-densities-d_50.html
 double Ce_cond = 897.0; // specific heat of copper cable in J/(kg K) - fuente: http://www.engineeringtoolbox.com/metal-alloys-densities-d_50.html
@@ -311,6 +311,7 @@ double K(int i, int j) {
     // Define thermal conductivity calculation based on (x, y) coordinates
     return SPATIAL_PARAM(i, j, k_soil1, k_soil2, k_xlpe, k_cond);;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // Function to calculate heat source "F" at a given coordinate (i, j)          //
 ///////////////////////////////////////////////////////////////////////////////
@@ -339,25 +340,25 @@ double F(int i, int j, int steps) {
     if (circle(x, y, x_cable11, y_cable11, cond_diam/2) || 
         circle(x, y, x_cable12, y_cable12, cond_diam/2) || 
         circle(x, y, x_cable13, y_cable13, cond_diam/2)) {
-        //F_ = F_c1*steps*steps*hmin*hmin*a_P_inv();
+        F_ = F_c1*steps*steps*2*hmin*hmin*a_P_inv();
         //return F_;  
-        return F_c1; // return F_cable if (x,y) is inside cable 11, 12 or 13
+        return F_; // return F_cable if (x,y) is inside cable 11, 12 or 13
     }
 
     if (circle(x, y, x_cable21, y_cable21, cond_diam/2) || 
          circle(x, y, x_cable22, y_cable22, cond_diam/2) || 
          circle(x, y, x_cable23, y_cable23, cond_diam/2)) {
-         //F_ = F_c2*steps*steps*hmin*hmin*a_P_inv();
+         F_ = F_c2*steps*steps*2*hmin*hmin*a_P_inv();
          // return F_;
-         return F_c2; // return F_cable if (x,y) is inside cable 21, 22 or 23
+         return F_; // return F_cable if (x,y) is inside cable 21, 22 or 23
      }
     
     // if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
     //     circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
     //     circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
-    //     //F_ = F_c3*steps*steps*hmin*hmin*a_P_inv();
+    //     F_ = F_c3*steps*steps*2*hmin*hmin*a_P_inv();
     //     //return F_; // return F_cable if (x,y) is inside cable 31, 32 or 33
-    //       return F_c3 
+    //       return F_ 
     //}
     return F_;
 }
@@ -602,15 +603,15 @@ int main(void)
     y_cable13 = deep_cable - cable_diam; // y coordinate of cable 3
         
     // current in circuit 1
-    double Ic1 = 0.0; //328.6; // current in cable
+    double Ic1 = 328.6; // current in cable
     int icable1= (int) (x_cable11/hmin); // cable number
     int jcable1= (int) (y_cable11/hmin); // cable number
     int i = (int) (x_cable11 / hmin);
     int j = (int) (y_cable11 / hmin);
     
-    double a_P= (K(i-1,j) + K(i+1,j) + K(i,j-1) + K(i,j+1) + 4*K(i,j))/2 ; // linearly interpolated value of thermal conductivity in the volumen
-    F_c1 = (1.0 * Ic1 * Ic1 * res_cond/(3.1416*cond_diam*cond_diam/4))*hmin*hmin/a_P ; // heat source in cable W/m3 --> 1.05 is for insulation losses
-    //F_c1 = (1.05 * Ic1 * Ic1 * res_cond/(3.1416*cond_diam*cond_diam/4)) ; // heat source in cable W/m3 --> 1.05 is for insulation losses
+    //double a_P= (K(i-1,j) + K(i+1,j) + K(i,j-1) + K(i,j+1) + 4*K(i,j))/2 ; // linearly interpolated value of thermal conductivity in the volumen
+    //F_c1 = (1.0 * Ic1 * Ic1 * res_cond/(3.1416*cond_diam*cond_diam/4))*2*hmin*hmin/a_P ; // heat source in cable W/m3 --> 1.05 is for insulation losses
+    F_c1 = (1.0 * Ic1 * Ic1 * res_cond/(3.1416*cond_diam*cond_diam/4)) ; // heat source in cable W/m3 --> 1.05 is for insulation losses
     //Circuit 2 - three phase arrangement in trifoil - Left circuit
     x_cable21 = x_cable11 - separation_circuits; // x coordinate of cable 1 , central and upper cable
     y_cable21 = y_cable11; // y coordinate of cable 1
@@ -620,11 +621,11 @@ int main(void)
     y_cable23 = deep_cable - cable_diam; // y coordinate of cable 3
     
     // current in circuit 2
-    double Ic2 = 690.0; //328.6; // current in cable
+    double Ic2 = 328.6; //690.0; //328.6; // current in cable
     int icable2= (int) (x_cable21/hmin); // cable number
     int jcable2= (int) (y_cable21/hmin); // cable number
-    F_c2 = 1.0* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4)*hmin*hmin/a_P ; // heat source in cable W/m3 --> 1.05 is for insulation losses
-    //F_c2 = 1.05* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4) ; // heat source in cable W/m3 --> 1.05 is for insulation losses 
+    //F_c2 = 1.05* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4)*2*hmin*hmin/a_P ; // heat source in cable W/m3 --> 1.05 is for insulation losses
+    F_c2 = 1.05* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4) ; // heat source in cable W/m3 --> 1.05 is for insulation losses 
     //Circuit 3 - three phase arrangement in trifoil - Right circuit
     // x_cable31 = x_cable11 + separation_circuits; // x coordinate of cable 1 , central and upper cable
     // y_cable31 = y_cable11; // y coordinate of cable 1
