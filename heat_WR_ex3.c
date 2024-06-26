@@ -6,15 +6,9 @@
 #define MAX_VARIANCE_TO_MEAN_RATIO 0.001 // maximum variance to mean ratio to stop the simulation
 #define DEEP_OF_DOMAIN 10.0 // deep of domain in meters
 #define WIDTH_OF_DOMAIN 10.0 // width of domain in meters
-<<<<<<< HEAD
-#define NUMBER_OF_POINTS_IN_X 5000 // 7500
-#define NUMBER_OF_POINTS_IN_Y 5000 //
-#define MAX_NUMBER_OF_LOOPS 1000 // maximum number of loops
-=======
 #define NUMBER_OF_POINTS_IN_X 15000
 #define NUMBER_OF_POINTS_IN_Y 15000
 #define MAX_NUMBER_OF_LOOPS 100// maximum number of loops
->>>>>>> 7f3805fc6414493ef38eab1735094ac051f15a98
 #define DEEP_CABLE 1.04 // deep of cable in meters
 #define SEP_CABLES 0.4  // separation between cables in meters between three phase circuits
 #define TYPE_CABLE_ARRANGEMENT 2 // 1 for horizontal arrangement, 2 for trifoil arrangement
@@ -359,7 +353,6 @@ double F(int i, int j, int steps) {
          return F_; // return F_cable if (x,y) is inside cable 21, 22 or 23
      }
     
-<<<<<<< HEAD
     // if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
     //     circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
     //     circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
