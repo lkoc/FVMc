@@ -3,13 +3,13 @@
 // ./heat_WR_ex3.exe
 // Main parameters
 #define N_WALKERS 0 // number of parallel walkers 0 for maximum hardware number of threads
-#define MAX_VARIANCE_TO_MEAN_RATIO 0.001 // maximum variance to mean ratio to stop the simulation
+#define MAX_VARIANCE_TO_MEAN_RATIO -1 // maximum variance to mean ratio to stop the simulation
 #define DEEP_OF_DOMAIN 10.0 // deep of domain in meters
 #define WIDTH_OF_DOMAIN 10.0 // width of domain in meters
-#define NUMBER_OF_POINTS_IN_X 15000
-#define NUMBER_OF_POINTS_IN_Y 15000
-#define MAX_NUMBER_OF_LOOPS 100// maximum number of loops
-#define DEEP_CABLE 1.04 // deep of cable in meters
+#define NUMBER_OF_POINTS_IN_X 8000
+#define NUMBER_OF_POINTS_IN_Y 8000
+#define MAX_NUMBER_OF_LOOPS 200// maximum number of loops
+#define DEEP_CABLE 0.803 // deep of cable in meters
 #define SEP_CABLES 0.4  // separation between cables in meters between three phase circuits
 #define TYPE_CABLE_ARRANGEMENT 2 // 1 for horizontal arrangement, 2 for trifoil arrangement
 #define BACKFILL_HEIGHT_LAYER 0.4 //1.04 // 1.04 // height of backfill soil layer in m
@@ -126,8 +126,8 @@ double qright  = 0.0; // heat flux at the right of the domain
 // kind of boundaries
 int b_top    = 1; // 1: Dirichlet, 2: Neumann
 int b_bottom = 1; // 1: Dirichlet, 2: Neumann
-int b_left   = 1; // 1: Dirichlet, 2: Neumann
-int b_right  = 1; // 1: Dirichlet, 2: Neumann
+int b_left   = 2; // 1: Dirichlet, 2: Neumann
+int b_right  = 2; // 1: Dirichlet, 2: Neumann
 
 /////////////////////////////////////////
 // Parameters to refined grid         //
@@ -332,15 +332,15 @@ double F(int i, int j, int steps) {
         K_S = K(i  ,j+steps ); // thermal conductivity at the point S --> (i,j+1)
         K_N = K(i  ,j-steps);  // thermal conductivity at the point N --> (i,j-1)
         
-        // linearly interpolated value of thermal conductivity between E and P
-        a_P = (K_E + K_W + K_N + K_S + 4.0*K_P)/2; 
-        return 1/a_P;
+        // linearly interpolated value of thermal conductivity between 
+        //return (2*steps*steps*hmin * hmin) * (2.0/((K_W + K_E  + K_S + K_N + 4*K_P)));
+        return (steps*steps*hmin * hmin) * (2.0/((K_W + K_E  + K_S + K_N + 4*K_P)));
         } 
 
     if (circle(x, y, x_cable11, y_cable11, cond_diam/2) || 
         circle(x, y, x_cable12, y_cable12, cond_diam/2) || 
         circle(x, y, x_cable13, y_cable13, cond_diam/2)) {
-        F_ = F_c1*steps*steps*2*hmin*hmin*a_P_inv();
+        F_ = F_c1*a_P_inv();
         //return F_;  
         return F_; // return F_cable if (x,y) is inside cable 11, 12 or 13
     }
@@ -348,7 +348,7 @@ double F(int i, int j, int steps) {
     if (circle(x, y, x_cable21, y_cable21, cond_diam/2) || 
          circle(x, y, x_cable22, y_cable22, cond_diam/2) || 
          circle(x, y, x_cable23, y_cable23, cond_diam/2)) {
-         F_ = F_c2*steps*steps*2*hmin*hmin*a_P_inv();
+         F_ = F_c2*a_P_inv();
          // return F_;
          return F_; // return F_cable if (x,y) is inside cable 21, 22 or 23
      }
@@ -356,17 +356,9 @@ double F(int i, int j, int steps) {
     // if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
     //     circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
     //     circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
-    //     F_ = F_c3*steps*steps*2*hmin*hmin*a_P_inv();
+    //     F_ = F_c3*a_P_inv();
     //     //return F_; // return F_cable if (x,y) is inside cable 31, 32 or 33
     //       return F_ 
-=======
-    if (circle(x, y, x_cable31, y_cable31, cond_diam/2) || 
-        circle(x, y, x_cable32, y_cable32, cond_diam/2) || 
-        circle(x, y, x_cable33, y_cable33, cond_diam/2)) {
-        //F_ = F_c3*steps*steps*hmin*hmin*a_P_inv();
-        //return F_; // return F_cable if (x,y) is inside cable 31, 32 or 33
-          return F_c3 ; // return F_cable if (x,y) is inside cable 31, 32 or 33
->>>>>>> 7f3805fc6414493ef38eab1735094ac051f15a98
     //}
     return F_;
 }
@@ -609,17 +601,14 @@ int main(void)
     y_cable12 = deep_cable - cable_diam; // y coordinate of cable 2
     x_cable13 = x_cable11 + cable_diam*(0.5 + separat_lateral_cables); // x coordinate of cable 3, right and down cable
     y_cable13 = deep_cable - cable_diam; // y coordinate of cable 3
-        
     // current in circuit 1
-    double Ic1 = 328.6; // current in cable
+    double Ic1 = 0.0 ; //328.6; // current in cable
     int icable1= (int) (x_cable11/hmin); // cable number
     int jcable1= (int) (y_cable11/hmin); // cable number
     int i = (int) (x_cable11 / hmin);
     int j = (int) (y_cable11 / hmin);
-    
-    //double a_P= (K(i-1,j) + K(i+1,j) + K(i,j-1) + K(i,j+1) + 4*K(i,j))/2 ; // linearly interpolated value of thermal conductivity in the volumen
-    //F_c1 = (1.0 * Ic1 * Ic1 * res_cond/(3.1416*cond_diam*cond_diam/4))*2*hmin*hmin/a_P ; // heat source in cable W/m3 --> 1.05 is for insulation losses
     F_c1 = (1.0 * Ic1 * Ic1 * res_cond/(3.1416*cond_diam*cond_diam/4)) ; // heat source in cable W/m3 --> 1.05 is for insulation losses
+
     //Circuit 2 - three phase arrangement in trifoil - Left circuit
     x_cable21 = x_cable11 - separation_circuits; // x coordinate of cable 1 , central and upper cable
     y_cable21 = y_cable11; // y coordinate of cable 1
@@ -627,13 +616,12 @@ int main(void)
     y_cable22 = deep_cable - cable_diam; // y coordinate of cable 2
     x_cable23 = x_cable21 +  cable_diam*(0.5 + separat_lateral_cables); // x coordinate of cable 3, right and down cable
     y_cable23 = deep_cable - cable_diam; // y coordinate of cable 3
-    
     // current in circuit 2
-    double Ic2 = 328.6; //690.0; //328.6; // current in cable
+    double Ic2 = 690.0; //328.6; // current in cable
     int icable2= (int) (x_cable21/hmin); // cable number
     int jcable2= (int) (y_cable21/hmin); // cable number
-    //F_c2 = 1.05* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4)*2*hmin*hmin/a_P ; // heat source in cable W/m3 --> 1.05 is for insulation losses
     F_c2 = 1.05* Ic2 * Ic2 * res_cond/(3.1416*cond_diam*cond_diam/4) ; // heat source in cable W/m3 --> 1.05 is for insulation losses 
+
     //Circuit 3 - three phase arrangement in trifoil - Right circuit
     x_cable31 = x_cable11 + separation_circuits; // x coordinate of cable 1 , central and upper cable
     y_cable31 = y_cable11; // y coordinate of cable 1
@@ -641,12 +629,11 @@ int main(void)
     y_cable32 = deep_cable - cable_diam/2; // y coordinate of cable 2
     x_cable33 = x_cable31  + cable_diam*(0.5 + separat_lateral_cables); // x coordinate of cable 3, right and down cable
     y_cable33 = deep_cable - cable_diam/2; // y coordinate of cable 3
-    
     // current in circuit 3
     double Ic3 = 0.0; // current in cable
     int icable3= (int) (x_cable31/hmin); // cable number
     int jcable3= (int) (y_cable31/hmin); // cable number
-    F_c3 = 1.05*Ic3*Ic3*res_cond/(cable_area)*hmin*hmin/a_P ; // heat source in cable W/m3
+    //F_c3 = 1.05*Ic3*Ic3*res_cond/(cable_area)*hmin*hmin/a_P ; // heat source in cable W/m3
 
     // Point to calculate the temperature
     ///////////////////////////////////////

@@ -1,26 +1,27 @@
 // Heat equation in 2d with random numbers for steady state
-//  gcc -o heat_WR_transient_BNCH3.exe heat_WR_transient_BNCH3.c  ranlib.c rnglib.c -fopenmp
-// ./heat_WR_transient_BNCH3.exe
+//  gcc -o heat_WR_transient_BNCH1.exe heat_WR_transient_BNCH1.c  ranlib.c rnglib.c -fopenmp
+// ./heat_WR_transient_BNCH1.exe
 //
 //
-// Benchmark : 4.3.2 Superposition example 2: CondBook pag. 108
-// https://www.eng.auburn.edu/~dmckwski/mech7210/condbook.pdf
-// https://www.professores.uff.br/diomarcesarlobao/wp-content/uploads/sites/85/2017/09/condbook.pdf
-// 
-// Conduction Heat Transfer Notes for MECH 7210
-// Daniel W. Mackowski
-// Mechanical Engineering Department
-// Auburn University
-// 19-05-24 --> benchmark ok. consedera Eje Y invertico comparado con figra 4.10 del texto (p. 111 de CondBook)
+//
+// Benchmark 1: ejemplo 1 del paper:
+// A meshless model for transient heat conduction in functionally graded materials
+//
+//  https://www.researchgate.net/publication/226961451_A_meshless_model_for_transient_heat_conduction_in_functionally_graded_materials
+//
+// Wang, H., Qin, Q. H., & Kang, Y. (2006). A meshless model for transient heat 
+// conduction in functionally graded materials. Computational mechanics, 38(1), 51-60.
+
+#define PI 3.14159265358979323846
 
 // Main parameters
 #define N_WALKERS 0 // number of parallel walkers 0 for maximum hardware number of threads
 #define MAX_VARIANCE_TO_MEAN_RATIO -1 //1.0 //0.025 //-1.0 // maximum variance to mean ratio to stop the simulation (-1 for no control by variance-to-mean ratio)
 #define DEEP_OF_DOMAIN 1.0 // deep of domain in meters
 #define WIDTH_OF_DOMAIN 1.0 // width of domain in meters
-#define NUMBER_OF_POINTS_IN_X 1000 // 7500
-#define NUMBER_OF_POINTS_IN_Y 1000 //7500
-#define MAX_NUMBER_OF_LOOPS 1000 // maximum number of loops
+#define NUMBER_OF_POINTS_IN_X 100 // 7500
+#define NUMBER_OF_POINTS_IN_Y 100 //7500
+#define MAX_NUMBER_OF_LOOPS 10000 // maximum number of loops
 #define DEEP_CABLE 1.04 // deep of cable in meters
 #define SEP_CABLES 0.4  // separation between cables in meters between three phase circuits
 #define TYPE_CABLE_ARRANGEMENT 2 // 1 for horizontal arrangement, 2 for trifoil arrangement
@@ -31,7 +32,7 @@
 #define VERBOSE4 0 // 1 to print detailed results of heat sources in the screen
 #define PRINT_ADVANCE 1 // 1 to print advance of the simulation in the screen
 #define RANDOM_LIB 1 // 1 to use native random library, 0 to use ranlib library
-#define TMAX 1000000 // maximum temperature of the domain 
+#define TMAX 0.5 // maximum temperature of the domain 
 #define Factor_dt 1.0 // factor to calculate the time step
 
 // libraries
@@ -50,9 +51,9 @@
 // Point to calculate the temperature
  ///////////////////////////////////////
  ///////////////////////////////////////
-double x_point = 0.6; //x_cable21;          //   L/2; // x coordinate of the point
-double y_point = 0.4; //y_cable21 ; // - cable_diam/2-0.002; // y coordinate of the point
-// Solucion para x=0.6 ; y=0.4 (y=0.6 en las coordenadas del libro) es 0.14;
+double x_point = 0.5; //x_cable21;          //   L/2; // x coordinate of the point
+double y_point = 0.5; //y_cable21 ; // - cable_diam/2-0.002; // y coordinate of the point
+// Solucion para x=0.5 ; y=0.5 es 0.737812;
 
 // Main parameters
 double L = DEEP_OF_DOMAIN; // length of domain
@@ -76,7 +77,7 @@ double F_soil1 = 0.0; // heat source in soil 1 W/m3
 double Ttop    = 0.0; // temperature at the top of the domain
 double Tbottom = 0.0; // temperature at the bottom of the domain
 double Tleft   = 0.0; // temperature at the left of the domain
-double Tright  = 0.0; // temperature at the right of the domain
+double Tright  = 1.0; // temperature at the right of the domain
 double Tini    = 0.0; // initial temperature of the domain
 
 // Neumann boundary conditions
@@ -86,7 +87,7 @@ double qleft   = 0.0; // heat flux at the left of the domain
 double qright  = 0.0; // heat flux at the right of the domain
 
 // kind of boundaries
-int b_top    = 1; // 1: Dirichlet, 2: Neumann
+int b_top    = 2; // 1: Dirichlet, 2: Neumann
 int b_bottom = 2; // 1: Dirichlet, 2: Neumann
 int b_left   = 2; // 1: Dirichlet, 2: Neumann
 int b_right  = 1; // 1: Dirichlet, 2: Neumann
@@ -121,7 +122,7 @@ double K(int i, int j) {
 ///////////////////////////////////////////////////////////////////////////////
 double F(int i, int j, double d_t) {
     // Define source heat calculation based on (x, y) coordinates
-    return 1.0*d_t/(Ce(i,j) * rho(i,j)); 
+    return 0.0*d_t/(Ce(i,j) * rho(i,j)); 
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Function to return initial temperature given coordinate (x, y)           //
@@ -336,6 +337,17 @@ double single_walk(int start_i, int start_j) {
     return temp_walker; // return the calculated temperature of the walker
 }
 
+// REsultado teórico del paper mencionado en el encabezado BNCmark 1
+double u_teor(double t, double xvec) {
+    double u = 0.0;
+    for (int i = 0; i < 10000; i++) {
+        double mu = (2.0 * i + 1.0) * PI / 2.0;
+        u += pow(-1.0, i) * 4.0 / ((2.0 * i + 1.0) * PI) *
+              cos(mu * xvec) * exp(-pow(mu, 2.0) * t);
+    }
+    return 1.0 - u;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Main function                                                                       //
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -476,10 +488,11 @@ int main(void)
     printf("Walkers: %d \n", (n_walkers*n_loops));
     printf("Loops: %d \n", (n_loops));
     printf("parallel walkers: %d \n", (n_walkers));
+    printf("Tem teor: %f\n", u_teor(TMAX, x_point));
 
     // write in a single text row Average Temperature, standard deviation and  n_walkers*n_loops to file to a file (new or add to existent) 
     FILE *fp; // file pointer
-    fp = fopen("results_ex3_transient.csv", "a"); // open file to append
+    fp = fopen("results_ex3_transientBNCH1.csv", "a"); // open file to append
     fprintf(fp, "%d, %d, %d, %.8f, %.8f, %d, %.8f, %.8f, %d, \n", t_max, start_i, start_j, average_temperature, sqrt(variance), n_walkers*n_loops, hmin, d_t_0 ,nx) ;
     fclose(fp);
    return 0;
