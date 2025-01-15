@@ -1,5 +1,5 @@
 // Heat equation in 2d with random numbers for steady state
-//  gcc -o heat_WR_transient_BNCH3.exe heat_WR_transient_BNCH3.c  ranlib.c rnglib.c -fopenmp
+//  cls
 // ./heat_WR_transient_BNCH3.exe
 //
 //
